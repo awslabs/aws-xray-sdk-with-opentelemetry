@@ -1,0 +1,49 @@
+description = 'AWS X-Ray with OpenTelemetry'
+
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+
+    group = 'com.amazonaws'
+    version = '0.1.0-SNAPSHOT'
+    sourceCompatibility = '8'
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven {
+            url = 'https://oss.jfrog.org/artifactory/oss-snapshot-local'
+        }
+    }
+
+    java {
+        withJavadocJar()
+    }
+
+    javadoc {
+        source = sourceSets.main.allJava
+        classpath = sourceSets.main.runtimeClasspath
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from(components.java)
+            }
+        }
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+}
+
+defaultTasks 'build'
+
+wrapper {
+    gradleVersion = '6.0'
+}
