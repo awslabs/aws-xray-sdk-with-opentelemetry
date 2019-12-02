@@ -2,7 +2,7 @@
 
 The purpose of this repository is to serve as the central location for the development of the AWS X-Ray SDK for Java that is compatible with the [OpenTelemetry API](https://github.com/open-telemetry/opentelemetry-java/tree/master/api) currently under development. Our goal is to enable usage of both AWS X-Ray APIs and OpenTelemetry APIs within the same trace and enable usage of OpenTelemetry contrib integrations with AWS X-Ray. This enables open experimentation and sharing of ideas between these overlapping customer segments.
 
-Currently, this is an 0.1.0-alpha and supports the 0.2.0-SNAPSHOT release of OpenTelemetry.
+Currently, the SDK release is 0.1.0-SNAPSHOT and supports the 0.2.0-SNAPSHOT release of OpenTelemetry.
 
 ## Objective
 
@@ -26,47 +26,7 @@ Instructions to use/information on the sample repo location, and functionality e
 
 ## Adding the SDK To Your Project
 
-1. Add snapshot builds and dependencies via your project’s dependency manager
-2. Set the io.opentelemetry.trace.spi.TracerProvider Java property to com.amazonaws.xray.opentelemetry.tracing.TracingProvider
-
-## Getting Started With Maven
-
-```
-<project>
-  ...
-  <repositories>
-    <repository>
-      <id>aws-snapshots</id>
-      <url>https://aws.oss.sonatype.org/content/repositories/snapshots (https://aws.oss.sonatype.org/content/repositories/snapshots/)</url>
-    </repository>
-  </repositories>
-  ...
-  <dependencies>
-    <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-xray-opentelemetry-sdk-java</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
-    </dependency>
-  </dependencies>
-  ...
-</project>
-```
-
-## Getting Started with Gradle
-
-```
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven {
-        url "https://aws.oss.sonatype.org/content/repositories/snapshots"
-    }
-}
-
-dependencies {
-    runtimeOnly("com.amazonaws:aws-xray-opentelemetry-sdk-java:0.1.0-SNAPSHOT")
-}
-```
+We are working to enable snapshot releases of the SDK [here](https://github.com/awslabs/aws-xray-sdk-with-opentelemetry/issues/8). 
 
 ## Building From Source
 
