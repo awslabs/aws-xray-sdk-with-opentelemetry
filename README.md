@@ -11,10 +11,10 @@ Our goal is to address the following use cases on behalf of customers want to tr
 * Enable workloads instrumented using OpenTelemetry APIs to send data to services such as AWS X-Ray and Amazon CloudWatch.
 * Automate code instrumentation by making the use of agent frameworks such that developers no longer need to make manual code changes to instrument their applications.
 
-## Roadmap [WIP]
+## Roadmap
 
 * Proof of concept showing the use of X-Ray and OpenTelemetry libraries for code instrumentation.
-* Proof of concept showing the use of OpenTelemetry libraries with existing applications instrumented with the AWS X-Ray SDKs enabling support for a broader set of libraries (e.g.: memcached, etc.)
+* Proof of concept showing the use of OpenTelemetry libraries with existing applications instrumented with the AWS X-Ray SDKs enabling support for a broader set of libraries
 * Alpha version of OpenTelemetry exporters for AWS X-Ray and Amazon CloudWatch
 * Alpha version of instrumentation agent for Java.
 
@@ -83,8 +83,6 @@ Please use these community resources for getting help.
 * Open a support ticket with [AWS Support](http://docs.aws.amazon.com/awssupport/latest/user/getting-started.html).
 * Ask a question in the [AWS X-Ray Forum](https://forums.aws.amazon.com/forum.jspa?forumID=241&start=0).
 * For contributing guidelines refer [CONTRIBUTING.md](https://github.com/awslabs/aws-xray-sdk-with-opentelemetry/blob/master/CONTRIBUTING.md).
-
-## Developer Guide [WIP]
 
 ## License
 
