@@ -20,8 +20,6 @@ Our goal is to address the following use cases on behalf of customers want to tr
 
 ## Getting Started
 
-Instructions to use/information on the sample repo location, and functionality examples.
-
 [See It In Action - Sample App](https://github.com/aws-samples/aws-xray-sdk-with-opentelemetry-sample)
 
 ## Adding the SDK To Your Project
