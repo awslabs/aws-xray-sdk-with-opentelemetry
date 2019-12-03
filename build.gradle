@@ -1,12 +1,13 @@
-description = 'AWS X-Ray with OpenTelemetry'
-
-allprojects {
+subprojects {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
+    apply plugin: 'signing'
 
     group = 'com.amazonaws'
     version = '0.1.0-SNAPSHOT'
     sourceCompatibility = '8'
+
+    ext.isReleaseVersion = !version.endsWith('SNAPSHOT')
 
     repositories {
         mavenLocal()
@@ -23,6 +24,8 @@ allprojects {
     javadoc {
         source = sourceSets.main.allJava
         classpath = sourceSets.main.runtimeClasspath
+        options.links = ['https://docs.oracle.com/javase/8/docs/api']
+        options.encoding = 'UTF-8'
     }
 
     test {
@@ -31,7 +34,39 @@ allprojects {
 
     publishing {
         publications {
-            maven(MavenPublication) {
+            release(MavenPublication) {
+                repositories {
+                    maven {
+                        name = 'sonatype'
+                        url = 'https://aws.oss.sonatype.org/service/local/staging/deploy/maven2'
+                        credentials(PasswordCredentials) {
+                            username findProperty('sonatypeUsername')
+                            password findProperty('sonatypePassword')
+                        }
+                    }
+                }
+                pom {
+                    name = project.name
+                    description = project.description
+                    licenses {
+                        license {
+                            name = 'The Apache License, Version 2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'amazonwebservices'
+                            name = 'Amazon Web Services'
+                            url = 'https://aws.amazon.com'
+                        }
+                    }
+                    scm {
+                        connection = 'scm:git:https://github.com/awslabs/aws-xray-sdk-with-opentelemetry.git'
+                        developerConnection = 'scm:git:git@github.com:awslabs/aws-xray-sdk-with-opentelemetry.git'
+                        url = 'https://github.com/awslabs/aws-xray-sdk-with-opentelemetry'
+                    }
+                }
                 from(components.java)
             }
         }
@@ -39,6 +74,16 @@ allprojects {
 
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
+    }
+
+    signing {
+        required { isReleaseVersion && gradle.taskGraph.hasTask('uploadArchives') }
+
+        //https://github.com/gradle/gradle/issues/11387
+        if (required) {
+            useInMemoryPgpKeys(findProperty('signingKey'), findProperty('signingPassword'))
+            sign publishing.publications.release
+        }
     }
 }
 
