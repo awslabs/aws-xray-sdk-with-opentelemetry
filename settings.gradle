@@ -1,4 +1,4 @@
-rootProject.name = "aws-xray-sdk-opentelemetry"
+rootProject.name = "aws-xray-opentelemetry"
 
 include ":aws-xray-sdk-opentelemetry"
 project(':aws-xray-sdk-opentelemetry').projectDir = "$rootDir/sdk" as File

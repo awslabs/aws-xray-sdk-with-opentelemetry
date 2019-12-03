@@ -1,4 +1,4 @@
-description = "AWS X-Ray SDK with OpenTelemetry - Java"
+description = 'AWS X-Ray Java SDK with support for OpenTelemetry APIs'
 
 dependencies {
     implementation 'io.opentelemetry:opentelemetry-api:0.2.0-SNAPSHOT'
