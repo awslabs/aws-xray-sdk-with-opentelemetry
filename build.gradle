@@ -10,11 +10,7 @@ subprojects {
     ext.isReleaseVersion = !version.endsWith('SNAPSHOT')
 
     repositories {
-        mavenLocal()
         mavenCentral()
-        maven {
-            url = 'https://oss.jfrog.org/artifactory/oss-snapshot-local'
-        }
     }
 
     java {
@@ -38,8 +34,10 @@ subprojects {
                 repositories {
                     maven {
                         name = 'sonatype'
-                        url = 'https://aws.oss.sonatype.org/service/local/staging/deploy/maven2'
-                        credentials(PasswordCredentials) {
+                        def releasesRepoUrl = 'https://aws.oss.sonatype.org/service/local/staging/deploy/maven2/'
+                        def snapshotsRepoUrl = 'https://aws.oss.sonatype.org/content/repositories/snapshots/'
+                        url = isReleaseVersion ? releasesRepoUrl : snapshotsRepoUrl
+                        credentials {
                             username findProperty('sonatypeUsername')
                             password findProperty('sonatypePassword')
                         }
