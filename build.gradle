@@ -18,9 +18,14 @@ subprojects {
     }
 
     javadoc {
+        def javaApiDocLink = [
+                (JavaVersion.VERSION_1_8): 'https://docs.oracle.com/javase/8/docs/api',
+                (JavaVersion.VERSION_11): 'https://docs.oracle.com/en/java/javase/11/docs/api'
+        ]
+
         source = sourceSets.main.allJava
         classpath = sourceSets.main.runtimeClasspath
-        options.links = ['https://docs.oracle.com/javase/8/docs/api']
+        options.links = [javaApiDocLink.get(JavaVersion.current())]
         options.encoding = 'UTF-8'
     }
 
