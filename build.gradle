@@ -34,9 +34,7 @@ subprojects {
                 repositories {
                     maven {
                         name = 'sonatype'
-                        def releasesRepoUrl = 'https://aws.oss.sonatype.org/service/local/staging/deploy/maven2/'
-                        def snapshotsRepoUrl = 'https://aws.oss.sonatype.org/content/repositories/snapshots/'
-                        url = isReleaseVersion ? releasesRepoUrl : snapshotsRepoUrl
+                        url = isReleaseVersion ? 'https://aws.oss.sonatype.org/service/local/staging/deploy/maven2/' : 'https://aws.oss.sonatype.org/content/repositories/snapshots/'
                         credentials {
                             username findProperty('sonatypeUsername')
                             password findProperty('sonatypePassword')
@@ -75,7 +73,7 @@ subprojects {
     }
 
     signing {
-        required { isReleaseVersion && gradle.taskGraph.hasTask('uploadArchives') }
+        required { isReleaseVersion }
 
         //https://github.com/gradle/gradle/issues/11387
         if (required) {
