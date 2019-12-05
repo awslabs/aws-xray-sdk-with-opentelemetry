@@ -1,7 +1,5 @@
 rootProject.name = "aws-xray-opentelemetry"
 
-include ":aws-xray-opentelemetry-sdk-java"
-
-project(':aws-xray-opentelemetry-sdk-java').projectDir = "$rootDir/sdk" as File
-
+include ":aws-xray-sdk-opentelemetry"
+project(':aws-xray-sdk-opentelemetry').projectDir = "$rootDir/sdk" as File
 
