@@ -40,7 +40,7 @@ Our goal is to address the following use cases on behalf of customers want to tr
   <dependencies>
     <dependency>
       <groupId>com.amazonaws</groupId>
-      <artifactId>aws-xray-opentelemetry-sdk-java</artifactId>
+      <artifactId>aws-xray-sdk-opentelemetry</artifactId>
       <version>0.1.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
@@ -51,15 +51,13 @@ Our goal is to address the following use cases on behalf of customers want to tr
 
 ```groovy
 repositories {
-    mavenLocal()
-    mavenCentral()
     maven {
-        url https://aws.oss.sonatype.org/content/repositories/snapshots'
+        url 'https://aws.oss.sonatype.org/content/repositories/snapshots'
     }
 }
 
 dependencies {
-    runtimeOnly('com.amazonaws:aws-xray-opentelemetry-sdk-java:0.1.0-SNAPSHOT')
+    runtimeOnly('com.amazonaws:aws-xray-sdk-opentelemetry:0.1.0-SNAPSHOT')
 }
 ```
 
