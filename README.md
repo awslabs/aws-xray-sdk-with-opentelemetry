@@ -22,15 +22,50 @@ Our goal is to address the following use cases on behalf of customers want to tr
 
 [See It In Action - Sample App](https://github.com/aws-samples/aws-xray-sdk-with-opentelemetry-sample)
 
-## Adding the SDK To Your Project
+### Adding the SDK To Your Project
 
-We are working to enable snapshot releases of the SDK [here](https://github.com/awslabs/aws-xray-sdk-with-opentelemetry/issues/8). 
+1. Add snapshot builds and dependencies via your project’s dependency manager
+2. Set the io.opentelemetry.trace.spi.TracerProvider Java property to com.amazonaws.xray.opentelemetry.tracing.TracingProvider
+
+### Getting Started With Maven
+
+```xml
+<project>
+  <repositories>
+    <repository>
+      <id>aws-snapshots</id>
+      <url>https://aws.oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+  </repositories>
+  <dependencies>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-xray-sdk-opentelemetry</artifactId>
+      <version>0.1.0-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+</project>
+```
+
+### Getting Started with Gradle
+
+```groovy
+repositories {
+    maven {
+        url 'https://aws.oss.sonatype.org/content/repositories/snapshots'
+    }
+}
+
+dependencies {
+    runtimeOnly('com.amazonaws:aws-xray-sdk-opentelemetry:0.1.0-SNAPSHOT')
+}
+```
 
 ## Building From Source
 
-```
+```shell
 ./gradlew build
-./gradlew publishToMavenLocal //if desired
+./gradlew publishToMavenLocal #if desired
 ```
 
 ## Getting Help
