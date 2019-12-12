@@ -38,13 +38,12 @@ public class RecorderBackedTracer implements Tracer {
   }
 
   /**
-   * {@inheritDoc}
-   * This implementation will automatically update the active span based on changes to the X-Ray
-   * recorder but otherwise conforms to OpenTelemetry semantics when creating spans.
+   * {@inheritDoc} This implementation will automatically update the active span based on changes to
+   * the X-Ray recorder but otherwise conforms to OpenTelemetry semantics when creating spans.
    */
   @Override
   public Span getCurrentSpan() {
-    if (currentSpan == null) {
+    if (currentSpan == null && recorder.getTraceEntity() == null) {
       return DefaultSpan.getInvalid();
     } else {
       //Reflect the recorder's current entity changing in response to X-Ray calls
