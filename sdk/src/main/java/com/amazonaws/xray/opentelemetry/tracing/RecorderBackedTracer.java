@@ -66,7 +66,7 @@ public class RecorderBackedTracer implements Tracer {
 
     //Just a rough implementation. There's some talk of separating scope management from
     //existing gRPC influenced deps. Need to better integrate this and X-Ray Recorder's
-    //scope managerment.
+    //scope management.
     return new Scope() {
       @Override
       public void close() {
