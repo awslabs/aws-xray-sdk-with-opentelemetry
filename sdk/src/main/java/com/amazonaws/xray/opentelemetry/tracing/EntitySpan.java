@@ -6,6 +6,8 @@ import com.amazonaws.xray.entities.Entity;
 import com.amazonaws.xray.entities.Segment;
 import com.amazonaws.xray.entities.Subsegment;
 import com.amazonaws.xray.entities.TraceID;
+import com.amazonaws.xray.opentelemetry.tracing.metadata.EntityMetadata;
+import com.amazonaws.xray.opentelemetry.tracing.metadata.EntityMetadataFactory;
 import com.amazonaws.xray.opentelemetry.tracing.utils.ContextUtils;
 import io.opentelemetry.trace.AttributeValue;
 import io.opentelemetry.trace.EndSpanOptions;
@@ -13,11 +15,10 @@ import io.opentelemetry.trace.Event;
 import io.opentelemetry.trace.Span;
 import io.opentelemetry.trace.SpanContext;
 import io.opentelemetry.trace.Status;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 
 /**
  * Adapter between the OpenTelemetry Span API and X-Ray Entities.
@@ -28,36 +29,13 @@ import org.apache.commons.logging.LogFactory;
 public class EntitySpan<T extends Entity> implements Span {
 
   private static final Log logger = LogFactory.getLog(EntitySpan.class);
-  private static final String OT_METADATA_NAMESPACE = "open_telemetry";
-  private static final String OT_METADATA_ATTRIBUTE_NAMESPACE = "attributes";
-  private static final String OT_METADATA_KIND_NAMESPACE = "kind";
-  private static final String OT_METADATA_STATUS_NAMESPACE = "status";
-  T entity;
+  private final T entity;
+  private final EntityMetadata metadata;
   private SpanContext context;
-  private Map<String, Object> attributes;
 
   private EntitySpan(final T entity, final Span.Kind kind) {
     this.entity = entity;
-
-    entity.putMetadata(OT_METADATA_NAMESPACE, OT_METADATA_STATUS_NAMESPACE, Status.OK);
-    entity.putMetadata(OT_METADATA_NAMESPACE, OT_METADATA_KIND_NAMESPACE, kind);
-
-    Map<String, Map<String, Object>> metadata = entity.getMetadata();
-    if (metadata != null) {
-      Map<String, Object> otMetadata = metadata.get(OT_METADATA_NAMESPACE);
-      if (otMetadata != null) {
-        Map<String, Object> attributeMetadata =
-            (Map<String, Object>) otMetadata.get(OT_METADATA_ATTRIBUTE_NAMESPACE);
-        if (attributeMetadata != null) {
-          attributes = attributeMetadata;
-        }
-      }
-    }
-
-    if (attributes == null) {
-      attributes = new ConcurrentHashMap<>();
-      entity.putMetadata(OT_METADATA_NAMESPACE, OT_METADATA_ATTRIBUTE_NAMESPACE, attributes);
-    }
+    this.metadata = EntityMetadataFactory.getOrCreate(entity, kind);
   }
 
   /**
@@ -85,7 +63,7 @@ public class EntitySpan<T extends Entity> implements Span {
     //TODO Implement nanosecond clock
     //newSegment.setStartTime(startTimestamp / 1000000.0d);
 
-    return fromEntity(newSegment);
+    return fromEntity(newSegment, kind);
   }
 
   /**
@@ -117,7 +95,7 @@ public class EntitySpan<T extends Entity> implements Span {
       recorder.setTraceEntity(currentEntity);
     }
 
-    return fromEntity(newSubsegment);
+    return fromEntity(newSubsegment, kind);
   }
 
   /**
@@ -142,30 +120,22 @@ public class EntitySpan<T extends Entity> implements Span {
   }
 
   /**
-   * Begin a span backed by the provided entity.
+   * Create a span from the provided entity with the default INTERNAL kind.
    *
    * @param entity the entity which backs the span
    * @return the span
    */
   public static EntitySpan fromEntity(final Entity entity) {
-    Span.Kind kind = Kind.INTERNAL;
-    Map<String, Map<String, Object>> metatdata = entity.getMetadata();
-
-    if (metatdata != null) {
-      Map<String, Object> otMetadata = entity.getMetadata().get(OT_METADATA_NAMESPACE);
-
-      if (otMetadata != null) {
-        Object spanKind = otMetadata.get(OT_METADATA_KIND_NAMESPACE);
-
-        if (spanKind != null && spanKind instanceof Span.Kind) {
-          kind = (Span.Kind) spanKind;
-        }
-      }
-    }
-
-    return fromEntity(entity, kind);
+    return fromEntity(entity, Kind.INTERNAL);
   }
 
+  /**
+   * Create a span from the provided entity with the specified kind.
+   *
+   * @param entity the entity which backs the span
+   * @param kind the kind of span
+   * @return the span
+   */
   public static EntitySpan fromEntity(final Entity entity, final Span.Kind kind) {
     return new EntitySpan<>(entity, kind);
   }
@@ -213,24 +183,38 @@ public class EntitySpan<T extends Entity> implements Span {
     switch (key) {
       case "http.method":
         if (value instanceof String) {
-          entity.putHttp("method", value);
+          putHttpAttribute("request","method", value);
         }
         break;
-      case "http.status":
+      case "http.status_code":
         if (value instanceof Long) {
-          entity.putHttp("status", value);
+          putHttpAttribute("response","status", value);
         }
         break;
       case "http.url":
         if (value instanceof String) {
-          entity.putHttp("url", value);
+          putHttpAttribute("request","url", value);
         }
         break;
       default:
         break;
     }
 
-    attributes.put(key, value);
+    metadata.putAttribute(key, value);
+  }
+
+  private void putHttpAttribute(final String section, final String key, final Object value) {
+    Map<String,Object> http = entity.getHttp();
+    Map<String, Object> sectionMap;
+
+    if(http.containsKey(section) && http.get(section) instanceof Map) {
+      sectionMap = (Map<String, Object>) http.get(section);
+    } else {
+      sectionMap = new HashMap<>();
+      entity.putHttp(section, sectionMap);
+    }
+
+    sectionMap.put(key, value);
   }
 
   //TODO The following event and status methods just update properties in the Segment
@@ -267,7 +251,7 @@ public class EntitySpan<T extends Entity> implements Span {
 
   @Override
   public void setStatus(final Status status) {
-    entity.putMetadata(OT_METADATA_NAMESPACE, OT_METADATA_STATUS_NAMESPACE, status);
+    metadata.setStatus(status);
   }
 
   @Override
