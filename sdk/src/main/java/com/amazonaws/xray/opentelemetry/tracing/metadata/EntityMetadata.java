@@ -1,17 +1,16 @@
 package com.amazonaws.xray.opentelemetry.tracing.metadata;
 
-import io.opentelemetry.trace.Event;
-import io.opentelemetry.trace.Span;
 import io.opentelemetry.trace.Span.Kind;
 import io.opentelemetry.trace.Status;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class EntityMetadata {
 
-  private final List<Event> events;
+  private final List<EntityMetadataEvent> events;
   private final Map<String, Object> attributes;
   private final Kind kind;
   private Status status;
@@ -35,8 +34,9 @@ public class EntityMetadata {
     attributes.put(name, value);
   }
 
-  public void addEvent(final Event event, final long timestamp) {
+  public void addEvent(final EntityMetadataEvent event) {
     events.add(event);
+    Collections.sort(events);
   }
 
   public Status getStatus() {
@@ -51,7 +51,7 @@ public class EntityMetadata {
     return kind;
   }
 
-  public List<Event> getEvents() {
+  public List<EntityMetadataEvent> getEvents() {
     return events;
   }
 }
