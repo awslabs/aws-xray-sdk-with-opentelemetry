@@ -1,10 +1,12 @@
 package com.amazonaws.xray.opentelemetry.tracing;
 
 import com.amazonaws.xray.AWSXRayRecorder;
+import com.amazonaws.xray.opentelemetry.tracing.utils.TimeUtils;
 import io.opentelemetry.trace.AttributeValue;
 import io.opentelemetry.trace.Link;
 import io.opentelemetry.trace.Span;
 import io.opentelemetry.trace.SpanContext;
+import java.time.Instant;
 import java.util.Map;
 
 /**
@@ -13,6 +15,8 @@ import java.util.Map;
  * @see io.opentelemetry.trace.Span.Builder
  */
 public class EntitySpanBuilder implements Span.Builder {
+
+
 
   private final AWSXRayRecorder recorder;
   private final String name;
@@ -97,7 +101,7 @@ public class EntitySpanBuilder implements Span.Builder {
   @Override
   public Span startSpan() {
     if (startTimestamp == 0) {
-      startTimestamp = System.nanoTime();
+      startTimestamp = TimeUtils.getCurrentNanoTime();
     }
 
     if (parentContext != null || parentSpan == null) {

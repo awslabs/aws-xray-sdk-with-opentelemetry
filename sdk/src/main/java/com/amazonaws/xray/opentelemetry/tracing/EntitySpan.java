@@ -7,8 +7,10 @@ import com.amazonaws.xray.entities.Segment;
 import com.amazonaws.xray.entities.Subsegment;
 import com.amazonaws.xray.entities.TraceID;
 import com.amazonaws.xray.opentelemetry.tracing.metadata.EntityMetadata;
+import com.amazonaws.xray.opentelemetry.tracing.metadata.EntityMetadataEvent;
 import com.amazonaws.xray.opentelemetry.tracing.metadata.EntityMetadataFactory;
 import com.amazonaws.xray.opentelemetry.tracing.utils.ContextUtils;
+import com.amazonaws.xray.opentelemetry.tracing.utils.TimeUtils;
 import io.opentelemetry.trace.AttributeValue;
 import io.opentelemetry.trace.EndSpanOptions;
 import io.opentelemetry.trace.Event;
@@ -29,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 public class EntitySpan<T extends Entity> implements Span {
 
   private static final Log logger = LogFactory.getLog(EntitySpan.class);
+
   private final T entity;
   private final EntityMetadata metadata;
   private SpanContext context;
@@ -60,9 +63,7 @@ public class EntitySpan<T extends Entity> implements Span {
       recorder.setTraceEntity(currentEntity);
     }
 
-    //TODO Implement nanosecond clock
-    //newSegment.setStartTime(startTimestamp / 1000000.0d);
-
+    newSegment.setStartTime(TimeUtils.nanoTimeToXrayTimestamp(startTimestamp));
     return fromEntity(newSegment, kind);
   }
 
@@ -85,9 +86,7 @@ public class EntitySpan<T extends Entity> implements Span {
     recorder.setTraceEntity(parent.getXrayEntity());
 
     Subsegment newSubsegment = recorder.beginSubsegment(name);
-
-    //TODO Implement nanosecond clock
-    //newSubsegment.setStartTime(startTimestamp / 1000000.0d);
+    newSubsegment.setStartTime(TimeUtils.nanoTimeToXrayTimestamp(startTimestamp));
 
     if (currentEntity == null) {
       recorder.clearTraceEntity();
@@ -101,21 +100,16 @@ public class EntitySpan<T extends Entity> implements Span {
   /**
    * Begin a span backed by a dummy segment.
    *
-   * @param recorder       create the span against this recorder
-   * @param name           the span's name
+   * @param recorder       create the span against this recorders
    * @param startTimestamp start time in nanoseconds
    * @param kind           the OpenTelemetry span kind
    * @return the span
    */
   public static EntitySpan beginDummySegment(final AWSXRayRecorder recorder,
-      final String name,
       final long startTimestamp,
       final Span.Kind kind) {
     DummySegment dummySegment = new DummySegment(recorder, new TraceID());
-
-    //TODO Implement nanosecond clock
-    //dummySegment.setStartTime(startTimestamp / 1000000.0d);
-
+    dummySegment.setStartTime(TimeUtils.nanoTimeToXrayTimestamp(startTimestamp));
     return fromEntity(dummySegment, kind);
   }
 
@@ -205,9 +199,11 @@ public class EntitySpan<T extends Entity> implements Span {
 
   private void putHttpAttribute(final String section, final String key, final Object value) {
     Map<String,Object> http = entity.getHttp();
+
+    @SuppressWarnings(value = "unchecked")
     Map<String, Object> sectionMap;
 
-    if(http.containsKey(section) && http.get(section) instanceof Map) {
+    if (http.containsKey(section) && http.get(section) instanceof Map) {
       sectionMap = (Map<String, Object>) http.get(section);
     } else {
       sectionMap = new HashMap<>();
@@ -217,36 +213,47 @@ public class EntitySpan<T extends Entity> implements Span {
     sectionMap.put(key, value);
   }
 
-  //TODO The following event and status methods just update properties in the Segment
   @Override
   public void addEvent(final String name) {
-
+    if (isRecording()) {
+      metadata.addEvent(EntityMetadataEvent.create(name));
+    }
   }
 
   @Override
   public void addEvent(final String name, final long timestamp) {
-
+    if (isRecording()) {
+      metadata.addEvent(EntityMetadataEvent.create(name, timestamp));
+    }
   }
 
   @Override
   public void addEvent(final String name, final Map<String, AttributeValue> attributes) {
-
+    if (isRecording()) {
+      metadata.addEvent(EntityMetadataEvent.create(name, attributes));
+    }
   }
 
   @Override
   public void addEvent(final String name, final Map<String, AttributeValue> attributes,
       final long timestamp) {
-
+    if (isRecording()) {
+      metadata.addEvent(EntityMetadataEvent.create(name, attributes, timestamp));
+    }
   }
 
   @Override
   public void addEvent(final Event event) {
-
+    if (isRecording()) {
+      metadata.addEvent(EntityMetadataEvent.create(event));
+    }
   }
 
   @Override
   public void addEvent(final Event event, final long timestamp) {
-
+    if (isRecording()) {
+      metadata.addEvent(EntityMetadataEvent.create(event, timestamp));
+    }
   }
 
   @Override
@@ -262,9 +269,12 @@ public class EntitySpan<T extends Entity> implements Span {
   @Override
   public void end() {
     if (isRecording()) {
+      if (entity.getEndTime() == 0) {
+        entity.setEndTime(TimeUtils.currentXrayNanoTimestamp());
+      }
+
       AWSXRayRecorder recorder = entity.getCreator();
       Entity previous = recorder.getTraceEntity();
-
       recorder.setTraceEntity(entity);
 
       if (entity instanceof Segment) {
@@ -272,7 +282,6 @@ public class EntitySpan<T extends Entity> implements Span {
       } else if (entity instanceof Subsegment) {
         recorder.endSubsegment();
       }
-
       if (!entity.equals(previous)) {
         recorder.setTraceEntity(previous);
       }
@@ -284,7 +293,7 @@ public class EntitySpan<T extends Entity> implements Span {
     if (endOptions != null) {
       long endTime = endOptions.getEndTimestamp();
       //EndTime values are in nanoseconds
-      entity.setEndTime(endTime / 1000000.0d);
+      entity.setEndTime(TimeUtils.nanoTimeToXrayTimestamp(endTime));
     }
     end();
   }
